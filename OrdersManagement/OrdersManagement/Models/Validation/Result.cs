@@ -1,4 +1,6 @@
-﻿namespace OrdersManagement.Models.Validation;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace OrdersManagement.Models.Validation;
 
 /// <summary>
 /// Represents a response result.
@@ -19,7 +21,7 @@ public class Result<T>
     /// <summary>
     /// List of error codes.
     /// </summary>
-    public List<string> ErrorCodes { get; private set; } = new();
+    public List<ValidationResult> ErrorCodes { get; private set; } = new();
     
     /// <summary>
     /// Creates a success result.
@@ -37,7 +39,7 @@ public class Result<T>
     /// </summary>
     /// <param name="errorCodes">List of error codes</param>
     /// <returns>Result object</returns>
-    public static Result<T> Failure(List<string> errorCodes) => new() 
+    public static Result<T> Failure(List<ValidationResult> errorCodes) => new() 
     { 
         IsError = true, 
         ErrorCodes = errorCodes 
