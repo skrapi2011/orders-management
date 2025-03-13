@@ -1,5 +1,6 @@
 ﻿using OrdersManagement.Models;
 using OrdersManagement.Models.Dtos;
+using OrdersManagement.Models.Validation;
 
 namespace OrdersManagement.Services.Interfaces;
 
@@ -20,7 +21,7 @@ public interface IOrderService
     /// </summary>
     /// <param name="order">Order object to be created</param>
     /// <returns>Order response object</returns>
-    public OrderResponseDto CreateOrder(OrderCreateDto order);
+    public Result<OrderResponseDto> CreateOrder(OrderCreateDto order);
     
     
 }
