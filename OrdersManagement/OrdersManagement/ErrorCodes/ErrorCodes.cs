@@ -11,7 +11,22 @@ public static class ErrorCodes
     public const string AmountTooLow = "Amount is too low.";
     
     /// <summary>
-    /// Error code for when the name is required.
+    /// Error code for when the amount is required.
     /// </summary>
-    public const string NameRequired = "Name is required.";
+    public const string AmountRequired = "Amount is required.";
+    
+    /// <summary>
+    /// Error code for when the product name is required.
+    /// </summary>
+    public const string ProductNameRequired = "Product name is required.";
+    
+    /// <summary>
+    /// Error code for when the customer type is required.
+    /// </summary>
+    public const string CustomerTypeRequired = "Customer type is required.";
+    
+    /// <summary>
+    /// Error code for when the payment method is required.
+    /// </summary>
+    public const string PaymentMethodRequired = "Payment method is required.";
 }

@@ -1,8 +1,7 @@
 ﻿using OrdersManagement.Models.Enums;
 
 namespace OrdersManagement.Models;
-using System.ComponentModel.DataAnnotations;
-using ErrorCodes;
+
 
 /// <summary>
 /// Represents an order.
@@ -17,32 +16,27 @@ public class Order
     /// <summary>
     /// Amount of the order.
     /// </summary>
-    [Required]
-    [Range(0.01, (double)decimal.MaxValue, ErrorMessage = ErrorCodes.AmountTooLow)]
-    public decimal Amount { get; set; }
+    public required decimal Amount { get; set; }
     
     /// <summary>
     /// Name of the product.
     /// </summary>
-    [Required(ErrorMessage = ErrorCodes.NameRequired)]
-    public string ProductName { get; set; }
+    public required string ProductName { get; set; }
     
     /// <summary>
     /// Type of the customer.
     /// </summary>
-    [Required]
-    public CustomerType CustomerType { get; set; }
+    public required CustomerType CustomerType { get; set; }
     
     /// <summary>
     /// Delivery address.
     /// </summary>
-    public string DeliveryAddress { get; set; }
+    public required string DeliveryAddress { get; set; }
     
     /// <summary>
     /// Payment method.
     /// </summary>
-    [Required]
-    public PaymentMethod PaymentMethod { get; set; }
+    public required PaymentMethod PaymentMethod { get; set; }
     
     /// <summary>
     /// Status of the order.
