@@ -34,9 +34,29 @@ namespace OrdersManagement
                     PaymentMethod = Models.Enums.PaymentMethod.Card
                 };
         
-                var result = await orderService.CreateOrderAsync(orderDto);
-                Console.WriteLine($"Order created: {!result.IsError}");
-                
+                var createResult = await orderService.CreateOrderAsync(orderDto);
+                Console.WriteLine($"Order created: {!createResult.IsError}");
+
+                if (createResult.Value != null)
+                {
+                    var moveResult = await orderService.MoveToWarehouseAsync(createResult.Value.Id);
+                    if (moveResult.Value != null)
+                        Console.WriteLine(
+                            $"Order moved to warehouse: {!moveResult.IsError}, {moveResult.Value.OrderStatus}");
+                    
+                    var shipResult = await orderService.ShipOrderAsync(createResult.Value.Id);
+                    if (shipResult.Value != null)
+                        Console.WriteLine(
+                            $"Order shipped: {!shipResult.IsError}, {shipResult.Value.OrderStatus}, {shipResult.Value.Id}");
+
+                    if (shipResult.Value != null)
+                    {
+                        Console.WriteLine("Waiting for order to be shipped...");
+                        await Task.Delay(6000);
+                        var getResults = await orderService.GetOrderByIdAsync(shipResult.Value.Id);
+                        if (getResults.Value != null) Console.Write("New Order status "+getResults.Value.OrderStatus);
+                    }
+                }
             }
         }
 
@@ -50,7 +70,7 @@ namespace OrdersManagement
             
             string baseDirectory = AppContext.BaseDirectory;
             string projectDirectory = Path.GetFullPath(Path.Combine(baseDirectory, "../../../"));
-            string dataDirectory = Path.Combine(projectDirectory, "data");
+            string dataDirectory = Path.Combine(projectDirectory, "Data");
 
             services.AddDbContext<OrdersDbContext>(options =>
                 options.UseSqlite($"Data Source={Path.Combine(dataDirectory, "database.db")}"));
