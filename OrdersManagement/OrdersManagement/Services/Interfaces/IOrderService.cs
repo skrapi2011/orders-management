@@ -17,6 +17,13 @@ public interface IOrderService
     public Task<Result<List<OrderResponseDto>>> GetOrdersAsync();
     
     /// <summary>
+    /// Gets an order by its ID.
+    /// </summary>
+    /// <param name="orderId">The unique identifier of the order to retrieve</param>
+    /// <returns>Result containing the order information if found</returns>
+    public Task<Result<OrderResponseDto>> GetOrderByIdAsync(Guid orderId);
+    
+    /// <summary>
     /// Creates an order.
     /// </summary>
     /// <param name="order">Order object to be created</param>

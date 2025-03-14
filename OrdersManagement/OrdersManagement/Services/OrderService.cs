@@ -39,6 +39,29 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
         
         return Result<List<OrderResponseDto>>.Success(ordersResponse);
     }
+    
+    /// <summary>
+    /// Gets an order by its ID.
+    /// </summary>
+    /// <param name="orderId">The unique identifier of the order to retrieve</param>
+    /// <returns>Result containing the order information if found</returns>
+    public async Task<Result<OrderResponseDto>> GetOrderByIdAsync(Guid orderId)
+    {
+        try
+        {
+            var order = await orderRepository.GetOrderByIdAsync(orderId);
+            if (order == null)
+                return Result<OrderResponseDto>.Failure(
+                    [new ValidationResult(ErrorCodes.OrderNotFound)]);
+
+            return Result<OrderResponseDto>.Success(MapToOrderResponseDto(order));
+        }
+        catch (Exception ex)
+        {
+            return Result<OrderResponseDto>.Failure(
+                [new ValidationResult(ex.Message)]);
+        }
+    }
 
     /// <summary>
     /// Creates an order.
@@ -145,7 +168,6 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
                 await Task.Delay(new Random().Next(1000, 5000));
                 order = await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.InShipping);
             });
-
             return Result<OrderResponseDto>.Success(MapToOrderResponseDto(order));
         }
         catch (Exception ex)
