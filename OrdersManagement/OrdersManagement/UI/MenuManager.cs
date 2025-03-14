@@ -8,8 +8,6 @@ namespace OrdersManagement.UI;
 /// <param name="orderService">Order service</param>
 public class MenuManager(IOrderService orderService)
 {
-    private readonly IOrderService _orderService = orderService;
-
     /// <summary>
     /// Initiates the menu manager.
     /// </summary>
@@ -56,20 +54,21 @@ public class MenuManager(IOrderService orderService)
     /// <summary>
     /// Displays the main menu.
     /// </summary>
-    private static void DisplayMainMenu()
+    private static async void DisplayMainMenu()
     {
         Console.Clear();
-        Console.WriteLine("============================================");
-        Console.WriteLine("=          ORDER MANAGEMENT SYSTEM         =");
-        Console.WriteLine("============================================");
-        Console.WriteLine("=  1. Create Sample Order                  =");
-        Console.WriteLine("=  2. Move Order to Warehouse              =");
-        Console.WriteLine("=  3. Ship Order                           =");
-        Console.WriteLine("=  4. View Orders                          =");
-        Console.WriteLine("=  5. Search Order by ID                   =");
-        Console.WriteLine("=  6. Close Order                          =");
-        Console.WriteLine("=  7. Exit                                 =");
-        Console.WriteLine("============================================");
+        await Task.Delay(300);
+        Console.WriteLine("==============================================");
+        Console.WriteLine("=           ORDER MANAGEMENT SYSTEM          =");
+        Console.WriteLine("==============================================");
+        Console.WriteLine("=  1. Create Order                           =");
+        Console.WriteLine("=  2. Move Order to Warehouse                =");
+        Console.WriteLine("=  3. Move Order to Shipping                 =");
+        Console.WriteLine("=  4. View All Orders                        =");
+        Console.WriteLine("=  5. Search Order by ID                     =");
+        Console.WriteLine("=  6. Close Order                            =");
+        Console.WriteLine("=  7. Exit                                   =");
+        Console.WriteLine("==============================================");
         Console.Write("Enter your choice (1-7): ");
     }
 
@@ -97,9 +96,9 @@ public class MenuManager(IOrderService orderService)
     private static async Task CreateSampleOrderAsync()
     {
         Console.Clear();
-        Console.WriteLine("============================================");
-        Console.WriteLine("=          CREATE SAMPLE ORDER             =");
-        Console.WriteLine("============================================");
+        Console.WriteLine("==============================================");
+        Console.WriteLine("=            CREATE SAMPLE ORDER             =");
+        Console.WriteLine("==============================================");
         
         // TODO: Implement this method
         
@@ -112,9 +111,9 @@ public class MenuManager(IOrderService orderService)
     private static async Task SearchOrderByIdAsync()
     {
         Console.Clear();
-        Console.WriteLine("============================================");
-        Console.WriteLine("=          SEARCH ORDER BY ID              =");
-        Console.WriteLine("============================================");
+        Console.WriteLine("==============================================");
+        Console.WriteLine("=             SEARCH ORDER BY ID             =");
+        Console.WriteLine("==============================================");
 
         // TODO: Implement this method
 
@@ -127,9 +126,9 @@ public class MenuManager(IOrderService orderService)
     private static async Task CloseOrderAsync()
     {
         Console.Clear();
-        Console.WriteLine("============================================");
-        Console.WriteLine("=             CLOSE ORDER                  =");
-        Console.WriteLine("============================================");
+        Console.WriteLine("==============================================");
+        Console.WriteLine("=                CLOSE ORDER                 =");
+        Console.WriteLine("==============================================");
 
         // TODO: Implement this method
 
@@ -139,24 +138,120 @@ public class MenuManager(IOrderService orderService)
     /// <summary>
     /// Moves an order to warehouse.
     /// </summary>
-    private static async Task MoveOrderToWarehouseAsync()
+    private async Task MoveOrderToWarehouseAsync()
     {
-        // TODO: Implement this method
+        Console.Clear();
+        Console.WriteLine("=============================================");
+        Console.WriteLine("=          MOVE ORDER TO WAREHOUSE          =");
+        Console.WriteLine("=============================================");
+    
+        Console.Write("Enter Order ID: ");
+        if (!Guid.TryParse(Console.ReadLine(), out var orderId))
+        {
+            Console.WriteLine("Invalid Order ID format.");
+            WaitForInput();
+            return;
+        }
+    
+        var result = await orderService.MoveToWarehouseAsync(orderId);
+    
+        if (result.IsError)
+        {
+            Console.WriteLine($"Error: {string.Join(", ", result.ErrorCodes.Select(e => e.ErrorMessage))}");
+        }
+        else
+        {
+            Console.WriteLine("==============================================");
+            Console.WriteLine("Order successfully moved to warehouse:");
+            Console.WriteLine($"Order ID: {result.Value!.Id}");
+            Console.WriteLine($"Product Name: {result.Value.ProductName}");
+            Console.WriteLine($"Order Status: {result.Value.OrderStatus}");
+            Console.WriteLine("==============================================");
+        }
+    
+        WaitForInput();
     }
 
     /// <summary>
     /// Ships an order.
     /// </summary>
-    private static async Task ShipOrderAsync()
+    private async Task ShipOrderAsync()
     {
-        // TODO: Implement this method
+        Console.Clear();
+        Console.WriteLine("==============================================");
+        Console.WriteLine("=                 SHIP ORDER                 =");
+        Console.WriteLine("==============================================");
+
+        Console.Write("Enter Order ID: ");
+        if (!Guid.TryParse(Console.ReadLine(), out var orderId))
+        {
+            Console.WriteLine("Invalid Order ID format.");
+            WaitForInput();
+            return;
+        }
+
+        var result = await orderService.ShipOrderAsync(orderId);
+
+        if (result.IsError)
+        {
+            Console.WriteLine($"Error: {string.Join(", ", result.ErrorCodes.Select(e => e.ErrorMessage))}");
+        }
+        else
+        {
+            Console.WriteLine("==============================================");
+            Console.WriteLine("Order shipping process initiated:");
+            Console.WriteLine($"Order ID: {result.Value!.Id}");
+            Console.WriteLine($"Product Name: {result.Value.ProductName}");
+            Console.WriteLine($"Current Status: {result.Value.OrderStatus}");
+            Console.WriteLine("Status will update to InShipping within 5 seconds.");
+            Console.WriteLine("==============================================");
+        }
+
+        WaitForInput();
     }
 
     /// <summary>
     /// Views orders.
     /// </summary>
-    private static async Task ViewOrdersAsync()
+    private async Task ViewOrdersAsync()
     {
-        // TODO: Implement this method
+        Console.Clear();
+        await Task.Delay(300);
+        Console.WriteLine("==============================================");
+        Console.WriteLine("=                VIEW ORDERS                 =");
+        Console.WriteLine("==============================================");
+
+        var ordersResult = await orderService.GetOrdersAsync();
+        
+        if (!ordersResult.IsError)
+        {
+            var orders = ordersResult.Value;
+            if (orders is { Count: 0 })
+            {
+                Console.WriteLine("No orders found.");
+            }
+            else
+            {
+                if (orders != null)
+                    foreach (var order in orders)
+                    {
+                        Console.WriteLine($"Order ID: {order.Id}");
+                        Console.WriteLine($"Product Name: {order.ProductName}");
+                        Console.WriteLine($"Amount: {order.Amount}");
+                        Console.WriteLine($"Customer Type: {order.CustomerType}");
+                        Console.WriteLine($"Delivery Address: {order.DeliveryAddress}");
+                        Console.WriteLine($"Payment Method: {order.PaymentMethod}");
+                        Console.WriteLine($"Order Status: {order.OrderStatus}");
+                        Console.WriteLine($"Created At: {order.CreatedAt}");
+                        Console.WriteLine("==============================================");
+                    }
+            }
+        }
+        else
+        {
+            Console.WriteLine("Failed to retrieve orders.");
+        }
+
+        WaitForInput();
     }
 }
