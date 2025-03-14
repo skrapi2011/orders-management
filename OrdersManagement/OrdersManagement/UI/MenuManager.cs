@@ -41,9 +41,12 @@ public class MenuManager(IOrderService orderService)
                     await SearchOrderByIdAsync();
                     break;
                 case "6":
-                    await CloseOrderAsync();
+                    await ViewOrderStatisticsAsync();
                     break;
                 case "7":
+                    await CloseOrderAsync();
+                    break;
+                case "8":
                     exit = true;
                     break;
                 default:
@@ -68,8 +71,9 @@ public class MenuManager(IOrderService orderService)
         Console.WriteLine("=  3. Move Order to Shipping                 =");
         Console.WriteLine("=  4. View All Orders                        =");
         Console.WriteLine("=  5. Search Order by ID                     =");
-        Console.WriteLine("=  6. Close Order                            =");
-        Console.WriteLine("=  7. Exit                                   =");
+        Console.WriteLine("=  6. Show Orders Statistics                 =");
+        Console.WriteLine("=  7. Close Order                            =");
+        Console.WriteLine("=  8. Exit                                   =");
         Console.WriteLine("==============================================");
         Console.Write("Enter your choice (1-7): ");
     }
@@ -231,7 +235,7 @@ public class MenuManager(IOrderService orderService)
     /// <summary>
     /// Searches an order by ID.
     /// </summary>
-    private static async Task SearchOrderByIdAsync()
+    private async Task SearchOrderByIdAsync()
     {
         Console.Clear();
         await Task.Delay(300);
@@ -239,7 +243,34 @@ public class MenuManager(IOrderService orderService)
         Console.WriteLine("=             SEARCH ORDER BY ID             =");
         Console.WriteLine("==============================================");
 
-        // TODO: Implement this method
+        Console.Write("Enter Order ID: ");
+        if (!Guid.TryParse(Console.ReadLine(), out var orderId))
+        {
+            Console.WriteLine("Invalid Order ID format.");
+            WaitForInput();
+            return;
+        }
+
+        var result = await orderService.GetOrderByIdAsync(orderId);
+
+        if (result.IsError)
+        {
+            Console.WriteLine($"Error: {string.Join(", ", result.ErrorCodes.Select(e => e.ErrorMessage))}");
+        }
+        else
+        {
+            Console.WriteLine("==============================================");
+            Console.WriteLine("Order details:");
+            Console.WriteLine($"Order ID: {result.Value!.Id}");
+            Console.WriteLine($"Product Name: {result.Value.ProductName}");
+            Console.WriteLine($"Amount: {result.Value.Amount:C}");
+            Console.WriteLine($"Customer Type: {result.Value.CustomerType}");
+            Console.WriteLine($"Delivery Address: {result.Value.DeliveryAddress}");
+            Console.WriteLine($"Payment Method: {result.Value.PaymentMethod}");
+            Console.WriteLine($"Order Status: {result.Value.OrderStatus}");
+            Console.WriteLine($"Created At: {result.Value.CreatedAt}");
+            Console.WriteLine("==============================================");
+        }
 
         WaitForInput();
     }
@@ -247,7 +278,7 @@ public class MenuManager(IOrderService orderService)
     /// <summary>
     /// Closes an order.
     /// </summary>
-    private static async Task CloseOrderAsync()
+    private async Task CloseOrderAsync()
     {
         Console.Clear();
         await Task.Delay(300);
@@ -255,7 +286,29 @@ public class MenuManager(IOrderService orderService)
         Console.WriteLine("=                CLOSE ORDER                 =");
         Console.WriteLine("==============================================");
 
-        // TODO: Implement this method
+        Console.Write("Enter Order ID: ");
+        if (!Guid.TryParse(Console.ReadLine(), out var orderId))
+        {
+            Console.WriteLine("Invalid Order ID format.");
+            WaitForInput();
+            return;
+        }
+
+        var result = await orderService.CloseOrderAsync(orderId);
+
+        if (result.IsError)
+        {
+            Console.WriteLine($"Error: {string.Join(", ", result.ErrorCodes.Select(e => e.ErrorMessage))}");
+        }
+        else
+        {
+            Console.WriteLine("==============================================");
+            Console.WriteLine("Order successfully closed:");
+            Console.WriteLine($"Order ID: {result.Value!.Id}");
+            Console.WriteLine($"Product Name: {result.Value.ProductName}");
+            Console.WriteLine($"Order Status: {result.Value.OrderStatus}");
+            Console.WriteLine("==============================================");
+        }
 
         WaitForInput();
     }
@@ -379,6 +432,51 @@ public class MenuManager(IOrderService orderService)
             Console.WriteLine("Failed to retrieve orders.");
         }
 
+        WaitForInput();
+    }
+    
+    /// <summary>
+    /// Displays order statistics and reporting.
+    /// </summary>
+    private async Task ViewOrderStatisticsAsync()
+    {
+        Console.Clear();
+        var orders = (await orderService.GetOrdersAsync()).Value;
+    
+        Console.WriteLine("==============================================");
+        Console.WriteLine("=             ORDER STATISTICS               =");
+        Console.WriteLine("==============================================");
+    
+        if (orders == null || orders.Count == 0)
+        {
+            Console.WriteLine("No orders available for statistics.");
+            Console.WriteLine("==============================================");
+            WaitForInput();
+            return;
+        }
+    
+        // Status distribution
+        var byStatus = orders.GroupBy(o => o.OrderStatus)
+            .Select(g => new { Status = g.Key, Count = g.Count() });
+        Console.WriteLine("Orders by Status:");
+        foreach (var group in byStatus)
+            Console.WriteLine($"- {group.Status}: {group.Count}");
+        Console.Write("==============================================");
+    
+        // Customer type distribution
+        var byCustomer = orders.GroupBy(o => o.CustomerType)
+            .Select(g => new { Type = g.Key, Count = g.Count() });
+        Console.WriteLine("\nOrders by Customer Type:");
+        foreach (var group in byCustomer)
+            Console.WriteLine($"- {group.Type}: {group.Count}");
+        Console.Write("==============================================");
+    
+        // Revenue statistics
+        Console.WriteLine($"\nTotal Revenue: {orders.Sum(o => o.Amount):C}");
+        Console.WriteLine("==============================================");
+        Console.WriteLine($"Average Order Value: {orders.Average(o => o.Amount):C}");
+        Console.WriteLine("==============================================");
+    
         WaitForInput();
     }
 }
