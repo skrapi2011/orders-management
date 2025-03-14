@@ -3,6 +3,7 @@ using OrdersManagement.Models;
 using OrdersManagement.Models.Dtos;
 using OrdersManagement.Models.Validation;
 using OrdersManagement.Repositories;
+using OrdersManagement.Repositories.Interfaces;
 using OrdersManagement.Services.Interfaces;
 
 namespace OrdersManagement.Services;
@@ -10,30 +11,29 @@ namespace OrdersManagement.Services;
 /// <summary>
 /// Represents an order service.
 /// </summary>
-public class OrderService(OrderRepository orderRepository) : IOrderService
+public class OrderService(IOrderRepository orderRepository) : IOrderService
 {
-    
     /// <summary>
     /// Gets all orders.
     /// </summary>
     /// <returns>List of order response objects</returns>
-    public List<OrderResponseDto> GetOrders()
+    public async Task<Result<List<OrderResponseDto>>> GetOrdersAsync()
     {
-        var orders = orderRepository.GetOrders();
-         
-        var orderResponseDtos = orders.Select(order => new OrderResponseDto
+        var orders = await orderRepository.GetOrdersAsync();
+        
+        var ordersResponse = orders.Select(o => new OrderResponseDto
         {
-            Id = order.Id,
-            Amount = order.Amount,
-            ProductName = order.ProductName,
-            CustomerType = order.CustomerType,
-            DeliveryAddress = order.DeliveryAddress,
-            PaymentMethod = order.PaymentMethod,
-            OrderStatus = order.OrderStatus,
-            CreatedAt = order.CreatedAt
+            Id = o.Id,
+            Amount = o.Amount,
+            ProductName = o.ProductName,
+            CustomerType = o.CustomerType,
+            DeliveryAddress = o.DeliveryAddress,
+            PaymentMethod = o.PaymentMethod,
+            OrderStatus = o.OrderStatus,
+            CreatedAt = o.CreatedAt
         }).ToList();
-
-        return orderResponseDtos;
+        
+        return Result<List<OrderResponseDto>>.Success(ordersResponse);
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ public class OrderService(OrderRepository orderRepository) : IOrderService
     /// </summary>
     /// <param name="orderDto">Order object to be created</param>
     /// <returns>Order response object</returns>
-    public Result<OrderResponseDto> CreateOrder(OrderCreateDto orderDto)
+    public async Task<Result<OrderResponseDto>> CreateOrderAsync(OrderCreateDto orderDto)
     {
         var validationContext = new ValidationContext(orderDto);
         var validationResults = new List<ValidationResult>();
@@ -58,7 +58,7 @@ public class OrderService(OrderRepository orderRepository) : IOrderService
                 PaymentMethod = orderDto.PaymentMethod,
             };
             
-            var createdOrder = orderRepository.CreateOrder(order);
+            var createdOrder = await orderRepository.CreateOrderAsync(order);
             
             return Result<OrderResponseDto>.Success(new OrderResponseDto
             {
