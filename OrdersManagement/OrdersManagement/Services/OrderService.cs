@@ -66,6 +66,10 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
     /// <summary>
     /// Creates an order.
     /// </summary>
+    /// <remarks>
+    /// For business logic purposes, we allow for the creation of orders with empty address.
+    /// Order with empty address will be created with status 'Error'
+    /// </remarks>
     /// <param name="orderDto">Order object to be created</param>
     /// <returns>Order response object</returns>
     public async Task<Result<OrderResponseDto>> CreateOrderAsync(OrderCreateDto orderDto)
@@ -76,7 +80,7 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
 
         if (!isValid) return Result<OrderResponseDto>.Failure(validationResults);
         
-        var order = new Order()
+        var order = new Order
         {
             Amount = orderDto.Amount,
             ProductName = orderDto.ProductName,
@@ -84,6 +88,11 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
             DeliveryAddress = orderDto.DeliveryAddress,
             PaymentMethod = orderDto.PaymentMethod,
         };
+        
+        if (string.IsNullOrWhiteSpace(order.DeliveryAddress.Trim()))
+        {
+            order.OrderStatus = OrderStatus.Error;
+        }
             
         var createdOrder = await orderRepository.CreateOrderAsync(order);
             
@@ -155,9 +164,9 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
                     [new ValidationResult(ErrorCodes.OrderNotFound)]);
 
             // Business rule: Orders without address should be marked as error
-            if (string.IsNullOrEmpty(order.DeliveryAddress))
+            if (string.IsNullOrEmpty(order.DeliveryAddress.Trim()))
             {
-                order = await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.Error);
+                await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.Error);
                 return Result<OrderResponseDto>.Failure(
                     [new ValidationResult(ErrorCodes.OrderWithoutDeliveryAddress)]);
             }
