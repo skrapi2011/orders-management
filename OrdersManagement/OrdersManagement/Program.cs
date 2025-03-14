@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OrdersManagement.data;
+using OrdersManagement.Models.Dtos;
 using OrdersManagement.Repositories;
 using OrdersManagement.Repositories.Interfaces;
 using OrdersManagement.Services;
@@ -24,6 +25,17 @@ namespace OrdersManagement
             using (var scope = serviceProvider.CreateScope())
             {
                 var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
+                var orderDto = new OrderCreateDto
+                {
+                    Amount = 100,
+                    ProductName = "Laptop",
+                    CustomerType = Models.Enums.CustomerType.Person,
+                    DeliveryAddress = "123 Main St, Springfield, IL",
+                    PaymentMethod = Models.Enums.PaymentMethod.Card
+                };
+        
+                // creating example order to seed the database
+                // var createResult = await orderService.CreateOrderAsync(orderDto);
                 var menuManager = new MenuManager(orderService);
                 await menuManager.RunAsync();
             }
@@ -37,9 +49,9 @@ namespace OrdersManagement
         {
             var services = new ServiceCollection();
             
-            string baseDirectory = AppContext.BaseDirectory;
-            string projectDirectory = Path.GetFullPath(Path.Combine(baseDirectory, "../../../"));
-            string dataDirectory = Path.Combine(projectDirectory, "Data");
+            var baseDirectory = AppContext.BaseDirectory;
+            var projectDirectory = Path.GetFullPath(Path.Combine(baseDirectory, "../../../"));
+            var dataDirectory = Path.Combine(projectDirectory, "Data");
 
             services.AddDbContext<OrdersDbContext>(options =>
                 options.UseSqlite($"Data Source={Path.Combine(dataDirectory, "database.db")}"));
