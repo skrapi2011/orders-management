@@ -66,39 +66,56 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
     /// <summary>
     /// Creates an order.
     /// </summary>
+    /// <remarks>
+    /// For business logic purposes, we allow for the creation of orders with empty address.
+    /// Order with empty address will be created with status 'Error'
+    /// </remarks>
     /// <param name="orderDto">Order object to be created</param>
     /// <returns>Order response object</returns>
     public async Task<Result<OrderResponseDto>> CreateOrderAsync(OrderCreateDto orderDto)
     {
-        var validationContext = new ValidationContext(orderDto);
-        var validationResults = new List<ValidationResult>();
-        var isValid = Validator.TryValidateObject(orderDto, validationContext, validationResults, true);
+        try
+        {
+            var validationContext = new ValidationContext(orderDto);
+            var validationResults = new List<ValidationResult>();
+            var isValid = Validator.TryValidateObject(orderDto, validationContext, validationResults, true);
 
-        if (!isValid) return Result<OrderResponseDto>.Failure(validationResults);
+            if (!isValid) return Result<OrderResponseDto>.Failure(validationResults);
         
-        var order = new Order()
-        {
-            Amount = orderDto.Amount,
-            ProductName = orderDto.ProductName,
-            CustomerType = orderDto.CustomerType,
-            DeliveryAddress = orderDto.DeliveryAddress,
-            PaymentMethod = orderDto.PaymentMethod,
-        };
+            var order = new Order
+            {
+                Amount = orderDto.Amount,
+                ProductName = orderDto.ProductName,
+                CustomerType = orderDto.CustomerType,
+                DeliveryAddress = orderDto.DeliveryAddress,
+                PaymentMethod = orderDto.PaymentMethod,
+            };
+        
+            if (string.IsNullOrWhiteSpace(order.DeliveryAddress.Trim()))
+            {
+                order.OrderStatus = OrderStatus.Error;
+            }
             
-        var createdOrder = await orderRepository.CreateOrderAsync(order);
+            var createdOrder = await orderRepository.CreateOrderAsync(order);
             
-        return Result<OrderResponseDto>.Success(new OrderResponseDto
+            return Result<OrderResponseDto>.Success(new OrderResponseDto
+            {
+                Id = createdOrder.Id,
+                Amount = createdOrder.Amount,
+                ProductName = createdOrder.ProductName,
+                CustomerType = createdOrder.CustomerType,
+                DeliveryAddress = createdOrder.DeliveryAddress,
+                PaymentMethod = createdOrder.PaymentMethod,
+                OrderStatus = createdOrder.OrderStatus,
+                CreatedAt = createdOrder.CreatedAt
+            });
+        }
+        catch (Exception ex)
         {
-            Id = createdOrder.Id,
-            Amount = createdOrder.Amount,
-            ProductName = createdOrder.ProductName,
-            CustomerType = createdOrder.CustomerType,
-            DeliveryAddress = createdOrder.DeliveryAddress,
-            PaymentMethod = createdOrder.PaymentMethod,
-            OrderStatus = createdOrder.OrderStatus,
-            CreatedAt = createdOrder.CreatedAt
-        });
-
+            return Result<OrderResponseDto>.Failure(
+                [new ValidationResult(ex.Message)]);
+        }
+        
     }
     
     /// <summary>
@@ -125,7 +142,7 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
             // Business rule: Orders without address should be marked as error
             if (string.IsNullOrEmpty(order.DeliveryAddress))
             {
-                order = await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.Error);
+                await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.Error);
                 return Result<OrderResponseDto>.Failure(
                     [new ValidationResult(ErrorCodes.OrderWithoutDeliveryAddress)]);
             }
@@ -155,9 +172,9 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
                     [new ValidationResult(ErrorCodes.OrderNotFound)]);
 
             // Business rule: Orders without address should be marked as error
-            if (string.IsNullOrEmpty(order.DeliveryAddress))
+            if (string.IsNullOrEmpty(order.DeliveryAddress.Trim()))
             {
-                order = await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.Error);
+                await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.Error);
                 return Result<OrderResponseDto>.Failure(
                     [new ValidationResult(ErrorCodes.OrderWithoutDeliveryAddress)]);
             }
@@ -186,6 +203,15 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
     {
         try
         {
+            var existingOrder = await orderRepository.GetOrderByIdAsync(orderId);
+            if (existingOrder == null)
+                return Result<OrderResponseDto>.Failure(
+                    [new ValidationResult(ErrorCodes.OrderNotFound)]);
+            
+            if (existingOrder.OrderStatus == OrderStatus.Closed)
+                return Result<OrderResponseDto>.Failure(
+                    [new ValidationResult("Order is already closed")]);
+            
             var order = await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.Closed);
             return Result<OrderResponseDto>.Success(MapToOrderResponseDto(order));
         }
