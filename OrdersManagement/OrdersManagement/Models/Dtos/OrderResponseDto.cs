@@ -1,17 +1,16 @@
 ﻿using OrdersManagement.Models.Enums;
 
-namespace OrdersManagement.Models;
-
+namespace OrdersManagement.Models.Dtos;
 
 /// <summary>
-/// Represents an order.
+/// Represents an order response.
 /// </summary>
-public class Order
+public class OrderResponseDto
 {
     /// <summary>
     /// Unique identifier of the order.
     /// </summary>
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public required Guid Id { get; set; }
     
     /// <summary>
     /// Amount of the order.
@@ -41,10 +40,10 @@ public class Order
     /// <summary>
     /// Status of the order.
     /// </summary>
-    public OrderStatus OrderStatus { get; set; } = OrderStatus.New;
+    public required OrderStatus OrderStatus { get; set; }
     
     /// <summary>
     /// Date and time when the order was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public required DateTime CreatedAt { get; set; }
 }
