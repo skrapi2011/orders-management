@@ -1,4 +1,8 @@
-﻿using OrdersManagement.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using OrdersManagement.data;
+using OrdersManagement.Models;
+using OrdersManagement.Models.Enums;
+using OrdersManagement.Models.Validation;
 using OrdersManagement.Repositories.Interfaces;
 
 namespace OrdersManagement.Repositories;
@@ -6,31 +10,39 @@ namespace OrdersManagement.Repositories;
 /// <summary>
 /// Represents an order repository.
 /// </summary>
-public class OrderRepository : IOrderRepository
+public class OrderRepository(OrdersDbContext context) : IOrderRepository
 {
     /// <summary>
-    /// List of orders, imitating a database.
+    /// Gets all orders
     /// </summary>
-    private List<Order> _orders = [];
-    
-    /// <summary>
-    /// Gets all orders.
-    /// </summary>
-    /// <returns>List of orders</returns>
-    public List<Order> GetOrders()
+    /// <returns></returns>
+    public async Task<List<Order>> GetOrdersAsync()
     {
-        return _orders;
+        var orders = await context.Orders.ToListAsync();
+
+        return orders;
     }
     
-    /// <summary>
-    /// Creates an order.
-    /// </summary>
-    /// <param name="order">Order object to be created</param>
-    /// <returns>Order object</returns>
-    public Order CreateOrder(Order order)
+    public async Task<Order> CreateOrderAsync(Order order)
     {
-        _orders.Add(order);
+        await context.Orders.AddAsync(order);
+        await context.SaveChangesAsync();
+        
         return order;
     }
+
+    public async Task<Order> ChangeOrderStatusAsync(Guid orderId, OrderStatus orderStatus)
+    {
+        var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+        if (order == null)
+            throw new KeyNotFoundException($"Order with id {orderId} not found.");
+        
+        order.OrderStatus = orderStatus;
+        await context.SaveChangesAsync();
+
+        return order;
+    }
+
+
 
 }

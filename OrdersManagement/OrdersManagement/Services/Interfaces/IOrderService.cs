@@ -14,14 +14,13 @@ public interface IOrderService
     /// Gets all orders.
     /// </summary>
     /// <returns>List of order response objects</returns>
-    public List<OrderResponseDto> GetOrders();
+    public Task<Result<List<OrderResponseDto>>> GetOrdersAsync();
     
     /// <summary>
     /// Creates an order.
     /// </summary>
     /// <param name="order">Order object to be created</param>
     /// <returns>Order response object</returns>
-    public Result<OrderResponseDto> CreateOrder(OrderCreateDto order);
-    
+    public Task<Result<OrderResponseDto>> CreateOrderAsync(OrderCreateDto order);
     
 }
