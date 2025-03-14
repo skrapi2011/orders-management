@@ -29,4 +29,14 @@ public static class ErrorCodes
     /// Error code for when the payment method is required.
     /// </summary>
     public const string PaymentMethodRequired = "Payment method is required.";
+    
+    /// <summary>
+    /// Error code for when the order status is required.
+    /// </summary>
+    public const string OrderWithoutDeliveryAddress = "Order without delivery address cannot be processed.";
+    
+    /// <summary>
+    /// Error code for when the order is not found.
+    /// </summary>
+    public const string OrderNotFound = "Order not found.";
 }
