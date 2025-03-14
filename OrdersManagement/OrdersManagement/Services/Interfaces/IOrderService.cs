@@ -17,10 +17,37 @@ public interface IOrderService
     public Task<Result<List<OrderResponseDto>>> GetOrdersAsync();
     
     /// <summary>
+    /// Gets an order by its ID.
+    /// </summary>
+    /// <param name="orderId">The unique identifier of the order to retrieve</param>
+    /// <returns>Result containing the order information if found</returns>
+    public Task<Result<OrderResponseDto>> GetOrderByIdAsync(Guid orderId);
+    
+    /// <summary>
     /// Creates an order.
     /// </summary>
     /// <param name="order">Order object to be created</param>
     /// <returns>Order response object</returns>
     public Task<Result<OrderResponseDto>> CreateOrderAsync(OrderCreateDto order);
     
+    /// <summary>
+    /// Moves an order to the warehouse.
+    /// </summary>
+    /// <param name="orderId">Order identifier</param>
+    /// <returns>Result containing the updated order information</returns>
+    public Task<Result<OrderResponseDto>> MoveToWarehouseAsync(Guid orderId);
+
+    /// <summary>
+    /// Ships an order.
+    /// </summary>
+    /// <param name="orderId">Order identifier</param>
+    /// <returns>Result containing the updated order information</returns>
+    public Task<Result<OrderResponseDto>> ShipOrderAsync(Guid orderId);
+
+    /// <summary>
+    /// Completes the shipping process and closes the order.
+    /// </summary>
+    /// <param name="orderId">Order identifier</param>
+    /// <returns>Result containing the updated order information</returns>
+    public Task<Result<OrderResponseDto>> CloseOrderAsync(Guid orderId);
 }
