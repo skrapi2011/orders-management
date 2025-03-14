@@ -16,6 +16,13 @@ public interface IOrderRepository
     public Task<List<Order>> GetOrdersAsync();
     
     /// <summary>
+    /// Gets an order by ID.
+    /// </summary>
+    /// <param name="orderId">Order identifier</param>
+    /// <returns>Order object</returns>
+    public Task<Order?> GetOrderByIdAsync(Guid orderId);
+    
+    /// <summary>
     /// Creates an order.
     /// </summary>
     /// <param name="order">Order object to be created</param>
@@ -28,6 +35,6 @@ public interface IOrderRepository
     /// <param name="orderId">Unique identifier of the order</param>
     /// <param name="orderStatus">New status of the order</param>
     /// <returns>Order object</returns>
-    public Task<Order> ChangeOrderStatusAsync(Guid orderId, OrderStatus orderStatus);
+    public Task<Order?> ChangeOrderStatusAsync(Guid orderId, OrderStatus orderStatus);
     
 }

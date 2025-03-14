@@ -23,6 +23,22 @@ public class OrderRepository(OrdersDbContext context) : IOrderRepository
         return orders;
     }
     
+    /// <summary>
+    /// Gets an order by ID.
+    /// </summary>
+    /// <param name="orderId">Order identifier</param>
+    /// <returns>Order object</returns>
+    public async Task<Order?> GetOrderByIdAsync(Guid orderId)
+    {
+        var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+        return order;
+    }
+    
+    /// <summary>
+    /// Creates an order.
+    /// </summary>
+    /// <param name="order">Order object to be created</param>
+    ///  <returns>Order object</returns>
     public async Task<Order> CreateOrderAsync(Order order)
     {
         await context.Orders.AddAsync(order);
@@ -31,7 +47,7 @@ public class OrderRepository(OrdersDbContext context) : IOrderRepository
         return order;
     }
 
-    public async Task<Order> ChangeOrderStatusAsync(Guid orderId, OrderStatus orderStatus)
+    public async Task<Order?> ChangeOrderStatusAsync(Guid orderId, OrderStatus orderStatus)
     {
         var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
         if (order == null)
