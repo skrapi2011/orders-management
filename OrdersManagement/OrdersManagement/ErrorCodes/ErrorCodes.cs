@@ -39,4 +39,9 @@ public static class ErrorCodes
     /// Error code for when the order is not found.
     /// </summary>
     public const string OrderNotFound = "Order not found.";
+    
+    /// <summary>
+    /// Error code for when the order is already closed.
+    /// </summary>
+    public const string OrderAlreadyClosed = "Order is already closed.";
 }

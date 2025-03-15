@@ -7,7 +7,7 @@ using OrdersManagement.Services;
 using Xunit;
 using Assert = NUnit.Framework.Assert;
 
-namespace OrdersManagement.Tests;
+namespace OrdersManagement.Tests.IntegrationTests;
 
 /// <summary>
 /// Represents order integration tests.

@@ -3,7 +3,6 @@ using OrdersManagement.Models;
 using OrdersManagement.Models.Dtos;
 using OrdersManagement.Models.Enums;
 using OrdersManagement.Models.Validation;
-using OrdersManagement.Repositories;
 using OrdersManagement.Repositories.Interfaces;
 using OrdersManagement.Services.Interfaces;
 using static OrdersManagement.Utils.Mapping;
@@ -136,7 +135,13 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
                 // Business rule: Cash on delivery orders ≥ 2500 should be returned
                 case { PaymentMethod: PaymentMethod.CashOnDelivery, Amount: >= 2500 }:
                     order = await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.ReturnedToCustomer);
-                    return Result<OrderResponseDto>.Success(MapToOrderResponseDto(order));
+                    if(order is not null)
+                        return Result<OrderResponseDto>.Success(MapToOrderResponseDto(order));
+                    return Result<OrderResponseDto>.Failure(
+                        [new ValidationResult(ErrorCodes.OrderNotFound)]);
+                case { OrderStatus: OrderStatus.Closed }:
+                    return Result<OrderResponseDto>.Failure(
+                        [new ValidationResult(ErrorCodes.OrderAlreadyClosed)]);
             }
 
             // Business rule: Orders without address should be marked as error
@@ -148,7 +153,10 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
             }
 
             order = await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.InStock);
-            return Result<OrderResponseDto>.Success(MapToOrderResponseDto(order));
+            if(order is not null)
+                return Result<OrderResponseDto>.Success(MapToOrderResponseDto(order));
+            return Result<OrderResponseDto>.Failure(
+                [new ValidationResult(ErrorCodes.OrderNotFound)]);
         }
         catch (Exception ex)
         {
@@ -170,6 +178,9 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
             if (order == null)
                 return Result<OrderResponseDto>.Failure(
                     [new ValidationResult(ErrorCodes.OrderNotFound)]);
+            if (order.OrderStatus == OrderStatus.Closed)
+                return Result<OrderResponseDto>.Failure(
+                    [new ValidationResult(ErrorCodes.OrderAlreadyClosed)]);
 
             // Business rule: Orders without address should be marked as error
             if (string.IsNullOrEmpty(order.DeliveryAddress.Trim()))
@@ -210,10 +221,13 @@ public class OrderService(IOrderRepository orderRepository) : IOrderService
             
             if (existingOrder.OrderStatus == OrderStatus.Closed)
                 return Result<OrderResponseDto>.Failure(
-                    [new ValidationResult("Order is already closed")]);
+                    [new ValidationResult(ErrorCodes.OrderAlreadyClosed)]);
             
             var order = await orderRepository.ChangeOrderStatusAsync(orderId, OrderStatus.Closed);
-            return Result<OrderResponseDto>.Success(MapToOrderResponseDto(order));
+            if(order is not null)
+                return Result<OrderResponseDto>.Success(MapToOrderResponseDto(order));
+            return Result<OrderResponseDto>.Failure(
+                [new ValidationResult(ErrorCodes.OrderNotFound)]);
         }
         catch (Exception ex)
         {
