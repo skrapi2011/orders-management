@@ -6,7 +6,7 @@ using OrdersManagement.Repositories;
 using Xunit;
 using Assert = NUnit.Framework.Assert;
 
-namespace OrdersManagement.Tests;
+namespace OrdersManagement.Tests.RepositoryTests;
 
 /// <summary>
 /// Represents order repository tests.

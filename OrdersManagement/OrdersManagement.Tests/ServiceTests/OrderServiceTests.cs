@@ -7,7 +7,7 @@ using OrdersManagement.Services;
 using Xunit;
 using Assert = NUnit.Framework.Assert;
 
-namespace OrdersManagement.Tests;
+namespace OrdersManagement.Tests.ServiceTests;
 
 /// <summary>
 /// Represents order service tests.
